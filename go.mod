@@ -1,4 +1,4 @@
-module github.com/dmarkham/enumer
+module github.com/wwwangxc/enumer
 
 require (
 	github.com/pascaldekloe/name v1.0.0
@@ -11,5 +11,3 @@ require (
 )
 
 go 1.21
-
-replace github.com/dmarkham/enumer => github.com/wwwangxc/enumer v0.0.3
