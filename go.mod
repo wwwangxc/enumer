@@ -11,3 +11,5 @@ require (
 )
 
 go 1.21
+
+replace github.com/dmarkham/enumer => github.com/wwwangxc/enumer latest
