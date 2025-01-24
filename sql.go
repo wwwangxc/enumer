@@ -1,6 +1,7 @@
 package main
 
 // Arguments to format are:
+//
 //	[1]: type name
 const valueMethod = `func (i %[1]s) Value() (driver.Value, error) {
 	return i.String(), nil
@@ -24,9 +25,9 @@ const scanMethod = `func (i *%[1]s) Scan(value interface{}) error {
 		return fmt.Errorf("invalid value of %[1]s: %%[1]T(%%[1]v)", value)
 	}
 
-	val, err := %[1]sString(str)
-	if err != nil {
-		return err
+	val, ok := %[1]sString(str)
+	if !ok {
+		return fmt.Errorf("%%s does not belong to %[1]s values", str)
 	}
 
 	*i = val
