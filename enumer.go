@@ -3,33 +3,37 @@ package main
 import "fmt"
 
 // Arguments to format are:
+//
 //	[1]: type name
 const stringNameToValueMethod = `// %[1]sString retrieves an enum value from the enum constants string name.
 // Throws an error if the param is not part of the enum.
-func %[1]sString(s string) (%[1]s, error) {
+func %[1]sString(s string) (%[1]s, bool) {
 	if val, ok := _%[1]sNameToValueMap[s]; ok {
-		return val, nil
+		return val, true
 	}
 
 	if val, ok := _%[1]sNameToValueMap[strings.ToLower(s)]; ok {
-		return val, nil
+		return val, true
 	}
-	return 0, fmt.Errorf("%%s does not belong to %[1]s values", s)
+
+	return 0, false
 }
 `
 
 // Arguments to format are:
+//
 //	[1]: type name
-const stringValuesMethod = `// %[1]sValues returns all values of the enum
-func %[1]sValues() []%[1]s {
+const stringValuesMethod = `// All%[1]s returns all values of the enum
+func All%[1]s() []%[1]s {
 	return _%[1]sValues
 }
 `
 
 // Arguments to format are:
+//
 //	[1]: type name
-const stringsMethod = `// %[1]sStrings returns a slice of all String values of the enum
-func %[1]sStrings() []string {
+const stringsMethod = `// All%[1]sString returns a slice of all String values of the enum
+func All%[1]sString() []string {
 	strs := make([]string, len(_%[1]sNames))
 	copy(strs, _%[1]sNames)
 	return strs
@@ -37,9 +41,10 @@ func %[1]sStrings() []string {
 `
 
 // Arguments to format are:
+//
 //	[1]: type name
-const stringBelongsMethodLoop = `// IsA%[1]s returns "true" if the value is listed in the enum definition. "false" otherwise
-func (i %[1]s) IsA%[1]s() bool {
+const stringBelongsMethodLoop = `// IsValid returns "true" if the value is listed in the enum definition. "false" otherwise
+func (i %[1]s) IsValid() bool {
 	for _, v := range _%[1]sValues {
 		if i == v {
 			return true
@@ -50,18 +55,20 @@ func (i %[1]s) IsA%[1]s() bool {
 `
 
 // Arguments to format are:
+//
 //	[1]: type name
-const stringBelongsMethodSet = `// IsA%[1]s returns "true" if the value is listed in the enum definition. "false" otherwise
-func (i %[1]s) IsA%[1]s() bool {
+const stringBelongsMethodSet = `// IsValid returns "true" if the value is listed in the enum definition. "false" otherwise
+func (i %[1]s) IsValid() bool {
 	_, ok := _%[1]sMap[i] 
 	return ok
 }
 `
 
 // Arguments to format are:
+//
 //	[1]: type name
 const altStringValuesMethod = `func (%[1]s) Values() []string {
-	return %[1]sStrings()
+	return All%[1]sString()
 }
 `
 
@@ -141,74 +148,4 @@ func (g *Generator) printNamesSlice(runs [][]Value, typeName string, runsThresho
 		}
 	}
 	g.Printf("}\n\n")
-}
-
-// Arguments to format are:
-//	[1]: type name
-const jsonMethods = `
-// MarshalJSON implements the json.Marshaler interface for %[1]s
-func (i %[1]s) MarshalJSON() ([]byte, error) {
-	return json.Marshal(i.String())
-}
-
-// UnmarshalJSON implements the json.Unmarshaler interface for %[1]s
-func (i *%[1]s) UnmarshalJSON(data []byte) error {
-	var s string
-	if err := json.Unmarshal(data, &s); err != nil {
-		return fmt.Errorf("%[1]s should be a string, got %%s", data)
-	}
-
-	var err error
-	*i, err = %[1]sString(s)
-	return err
-}
-`
-
-func (g *Generator) buildJSONMethods(runs [][]Value, typeName string, runsThreshold int) {
-	g.Printf(jsonMethods, typeName)
-}
-
-// Arguments to format are:
-//	[1]: type name
-const textMethods = `
-// MarshalText implements the encoding.TextMarshaler interface for %[1]s
-func (i %[1]s) MarshalText() ([]byte, error) {
-	return []byte(i.String()), nil
-}
-
-// UnmarshalText implements the encoding.TextUnmarshaler interface for %[1]s
-func (i *%[1]s) UnmarshalText(text []byte) error {
-	var err error
-	*i, err = %[1]sString(string(text))
-	return err
-}
-`
-
-func (g *Generator) buildTextMethods(runs [][]Value, typeName string, runsThreshold int) {
-	g.Printf(textMethods, typeName)
-}
-
-// Arguments to format are:
-//	[1]: type name
-const yamlMethods = `
-// MarshalYAML implements a YAML Marshaler for %[1]s
-func (i %[1]s) MarshalYAML() (interface{}, error) {
-	return i.String(), nil
-}
-
-// UnmarshalYAML implements a YAML Unmarshaler for %[1]s
-func (i *%[1]s) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var s string
-	if err := unmarshal(&s); err != nil {
-		return err
-	}
-
-	var err error
-	*i, err = %[1]sString(s)
-	return err
-}
-`
-
-func (g *Generator) buildYAMLMethods(runs [][]Value, typeName string, runsThreshold int) {
-	g.Printf(yamlMethods, typeName)
 }
